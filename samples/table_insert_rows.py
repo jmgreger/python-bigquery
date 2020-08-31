@@ -21,22 +21,24 @@ client = bigquery.Client()
 
 # TODO(developer): Set table_id to the ID of the model to fetch.
 table_id = "your-project.your_dataset.your_table"
+
 # The client converts Python objects to JSON-serialization, but this requires a schema.
-# A schema can be fetched by calling `client.get_table`. If inserting many rows, it is
+# A schema can be fetched by calling `client.get_table` as shown below. If inserting many rows, it is
 # suggested that you cache the schema. The backend API for `client.insert_rows` supports
 # a much higher QPS than the backend API for `client.get_table`.
-schema = [
-    bigquery.SchemaField("col_1", "STRING"),
-    bigquery.SchemaField("col_2", "INTEGER"),
-    ]
-rows_to_insert = [(u"Phred Phlyntstone", 32), (u"Wylma Phlyntstone", 29)] #populate data for entry
+# Schema can be explicitly defined with the following:
+# schema = [
+#    bigquery.SchemaField("col_1", "STRING"),
+#    bigquery.SchemaField("col_2", "INTEGER"),
+#    ]
+schema = client.get_table(table_id).schema
+
+# Populate data for entry
+rows_to_insert = [(u"Phred Phlyntstone", 32), (u"Wylma Phlyntstone", 29)]
 
 try:
-    if 'schema' not in globals():
-        schema = client.get_table(table_id).schema  # Get table schema if none provided
-    client.insert_rows(table_id, selected_fields=schema, rows_to_insert)  # Stream data to BQ
+    # Stream data to BQ
+    client.insert_rows(table_id, selected_fields=schema, rows_to_insert)
     print("New rows have been added.")
-except ValueError:
-    print("Table’s schema is not set or rows is not a Sequence.")
         
 # [END bigquery_table_insert_rows]
